@@ -336,39 +336,65 @@ function updateGroupSummary(groupArea) {
         summary.textContent = '尚未有成員';
         return;
     }
-    
-    // 計算組別特色
-    const skills = {
-        programming: 0,
-        ai: 0,
-        creativity: 0,
-        communication: 0
+
+    // 收集組員資訊
+    const stats = {
+        memberCount: members.length,
+        skills: {
+            programming: 0,  // 技術
+            ai: 0,          // AI
+            creativity: 0,  // 創意
+            project: 0      // 專題
+        },
+        departments: new Set()  // 系所統計
     };
-    
+
     members.forEach(member => {
         const studentId = member.dataset.studentId;
         const student = students.find(s => s.id === parseInt(studentId));
         if (student) {
-            skills.programming += student.skills.programming;
-            skills.ai += student.skills.ai;
-            skills.creativity += student.skills.creativity;
-            skills.communication += student.skills.communication;
+            // 統計技能
+            if (student.skills.programming >= 3) stats.skills.programming++;
+            if (student.skills.ai >= 3) stats.skills.ai++;
+            if (student.skills.creativity >= 3) stats.skills.creativity++;
+            if (student.projectExp) stats.skills.project++;
+            
+            // 統計系所
+            stats.departments.add(student.dept);
         }
     });
-    
-    // 找出最強的特色
-    const maxSkill = Object.entries(skills).reduce((a, b) => 
-        (b[1] > a[1] ? b : a)
-    );
-    
-    const skillNames = {
-        programming: '技術導向',
-        ai: 'AI專長',
-        creativity: '創意導向',
-        communication: '溝通協作'
-    };
-    
-    summary.textContent = `${members.length}位成員 - ${skillNames[maxSkill[0]]}團隊`;
+
+    // 生成摘要 HTML
+    let summaryHTML = `
+        <div class="summary-content">
+            <div class="summary-tags">
+    `;
+
+    // 添加技能標籤
+    if (stats.skills.programming > 0) {
+        summaryHTML += `<span class="summary-tag tech">#技術x${stats.skills.programming}</span>`;
+    }
+    if (stats.skills.ai > 0) {
+        summaryHTML += `<span class="summary-tag ai">#AIx${stats.skills.ai}</span>`;
+    }
+    if (stats.skills.creativity > 0) {
+        summaryHTML += `<span class="summary-tag creative">#創意x${stats.skills.creativity}</span>`;
+    }
+    if (stats.skills.project > 0) {
+        summaryHTML += `<span class="summary-tag project">#專題x${stats.skills.project}</span>`;
+    }
+
+    summaryHTML += `
+            </div>
+            <div class="summary-departments">
+                ${Array.from(stats.departments).map(dept => 
+                    `<span class="dept-tag">${dept}</span>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+
+    summary.innerHTML = summaryHTML;
 }
 
 // 過濾學生
