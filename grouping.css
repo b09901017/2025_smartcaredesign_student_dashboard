@@ -10,6 +10,7 @@
 .students-panel {
     width: 300px;
     height: calc(100vh - 4rem); /* 減去 padding */
+    
     background: white;
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);

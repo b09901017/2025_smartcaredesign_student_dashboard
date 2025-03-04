@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化組別
     initializeGroups();
     
+    
     // 添加模態框關閉事件
     document.getElementById('modalOverlay').addEventListener('click', closeStudentModal);
     
