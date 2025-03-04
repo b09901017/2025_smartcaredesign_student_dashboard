@@ -38,6 +38,7 @@ body {
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: 1rem;
 }
 
 /* 標題樣式 */
@@ -608,4 +609,63 @@ section {
 
 .fullscreen-image-view.show {
   display: flex;
+}
+
+/* 導航欄樣式 */
+.nav-bar {
+  background: white;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-title {
+  font-size: 1.25rem;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  padding: 0.5rem 1rem;
+  color: var(--text-medium);
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* 調整現有容器樣式 */
+.container {
+  padding-top: 1rem;
+}
+
+.grouping-container {
+  padding-top: 1rem;
 }
