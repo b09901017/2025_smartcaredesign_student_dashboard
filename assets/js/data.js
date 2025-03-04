@@ -342,11 +342,11 @@ const students = [
       skills: {
         programming: 1,
         ai: 1,
-        creativity: 3,
-        execution: 2,
-        communication: 4,
-        presentation: 2,
-        management: 4
+        creativity: 1,
+        execution: 1,
+        communication: 1,
+        presentation: 1,
+        management: 1
       },
       images: []
     },
