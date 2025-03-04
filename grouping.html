@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分組配對 - 永續發展工程設計課程</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./grouping.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="grouping-container">
+        <!-- 左側學生列表 -->
+        <div class="students-panel">
+            <div class="panel-header">
+                <div class="header-top">
+                    <h3>未分組學生</h3>
+                    <button class="toggle-filter-btn" id="toggleFilterBtn">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+                <div class="filter-container" id="filterContainer">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="studentSearch" placeholder="搜尋學生姓名、系級...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="programming">程式設計</button>
+                        <button class="filter-btn" data-filter="ai">AI/ML</button>
+                        <button class="filter-btn" data-filter="creativity">創意發想</button>
+                        <button class="filter-btn" data-filter="project">專題經驗</button>
+                    </div>
+                </div>
+                <button id="autoGroupBtn" class="auto-group-btn">
+                    <i class="fas fa-magic"></i> AI 自動分組
+                </button>
+            </div>
+            <div class="students-list" id="studentsList">
+                <!-- 學生卡片由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 右側分組區域 -->
+        <div class="groups-panel">
+            <div class="groups-container">
+                <!-- 6個分組區域 -->
+                <div class="group-area" data-group="1">
+                    <h4>第一組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="1"></div>
+                </div>
+                <div class="group-area" data-group="2">
+                    <h4>第二組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="2"></div>
+                </div>
+                <div class="group-area" data-group="3">
+                    <h4>第三組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="3"></div>
+                </div>
+                <div class="group-area" data-group="4">
+                    <h4>第四組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="4"></div>
+                </div>
+                <div class="group-area" data-group="5">
+                    <h4>第五組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="5"></div>
+                </div>
+                <div class="group-area" data-group="6">
+                    <h4>第六組 <span class="member-count">(0/4)</span></h4>
+                    <div class="group-members" data-group="6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 學生詳細資料模態框 -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="student-modal" id="studentModal">
+        <!-- 學生詳細資料由 JavaScript 動態生成 -->
+    </div>
+
+    <script src="./data.js"></script>
+    <script src="./grouping.js"></script>
+</body>
+</html> 

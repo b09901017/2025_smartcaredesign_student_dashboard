@@ -1,0 +1,352 @@
+.grouping-container {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* 左側學生面板 */
+.students-panel {
+    width: 300px;
+    height: calc(100vh - 4rem); /* 減去 padding */
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 2rem;
+}
+
+.panel-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.toggle-filter-btn {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.toggle-filter-btn:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.toggle-filter-btn.active {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.panel-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.auto-group-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.auto-group-btn:hover {
+    background: var(--primary-dark);
+}
+
+.students-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* 學生卡片 - 精簡版 */
+.student-mini-card {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    cursor: move;
+    transition: var(--transition);
+}
+
+.student-mini-card:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.student-mini-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f5f7fa;
+    margin-right: 0.75rem;
+    overflow: hidden;
+}
+
+.student-mini-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.student-mini-info {
+    flex: 1;
+}
+
+.student-mini-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.student-mini-dept {
+    font-size: 0.85rem;
+    color: var(--text-medium);
+    margin: 0;
+}
+
+/* 學生標籤樣式 */
+.student-mini-tags {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.student-mini-tag {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* 右側分組區域 */
+.groups-panel {
+    flex: 1;
+    min-height: calc(100vh - 4rem);
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+}
+
+.groups-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    min-height: 100%;
+}
+
+.group-area {
+    background: #f8fafc;
+    border-radius: var(--radius);
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.group-area h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-dark);
+}
+
+.member-count {
+    font-size: 0.85rem;
+    color: var(--text-medium);
+    font-weight: normal;
+}
+
+.group-members {
+    min-height: 150px;
+    background: white;
+    border: 2px dashed var(--border-light);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    transition: var(--transition);
+    margin-bottom: 1rem;
+}
+
+.group-members.dragover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+/* 拖曳時的樣式 */
+.dragging {
+    opacity: 0.5;
+}
+
+/* 組別收合樣式 */
+.group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.group-header:hover {
+    background: var(--primary-light);
+    border-radius: var(--radius);
+}
+
+.group-toggle {
+    color: var(--text-medium);
+    transition: transform 0.3s ease;
+}
+
+.group-area.collapsed .group-toggle {
+    transform: rotate(-90deg);
+}
+
+.group-area.collapsed .group-members {
+    display: none;
+}
+
+.group-summary {
+    display: none;
+    padding: 0.75rem;
+    background: var(--primary-light);
+    border-radius: var(--radius);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--primary-dark);
+}
+
+.group-area.collapsed .group-summary {
+    display: block;
+}
+
+/* 學生詳情模態框樣式 */
+.student-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+    display: none;
+}
+
+.student-modal.show {
+    display: block;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+}
+
+.modal-overlay.show {
+    display: block;
+}
+
+/* 搜索和篩選區域 */
+.filter-container {
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+    max-height: 500px;
+    overflow: hidden;
+}
+
+.filter-container.collapsed {
+    max-height: 0;
+    margin: 0;
+    opacity: 0;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+#studentSearch {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+#studentSearch:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(53, 99, 233, 0.15);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-medium);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-btn:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* 確保最後一行的組別有適當的下邊距 */
+.group-area:nth-last-child(-n+2) .group-members {
+    margin-bottom: 0;
+} 
