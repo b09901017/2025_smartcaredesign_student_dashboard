@@ -329,7 +329,7 @@ const students = [
       id: 14,
       name: "高浩宸",
       studentId: "",
-      dept: "",
+      dept: "電機三",
       willingness: "",
       contact: "",
       programmingSkill: "",
