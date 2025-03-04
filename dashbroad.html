@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>永續發展工程設計課程 - 學生資料</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>永續發展工程設計課程</h1>
+      <p>學生資料概覽</p>
+    </header>
+
+    <!-- 班級概況區 -->
+    <section class="overview-section">
+      <h2>班級總覽</h2>
+      
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-content">
+            <p class="stat-value">21</p>
+            <p class="stat-label">學生總數</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-code"></i></div>
+          <div class="stat-content">
+            <p class="stat-value">4</p>
+            <p class="stat-label">程式基礎</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-lightbulb"></i></div>
+          <div class="stat-content">
+            <p class="stat-value">13</p>
+            <p class="stat-label">創意發想者</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+          <div class="stat-content">
+            <p class="stat-value">5</p>
+            <p class="stat-label">專題經驗</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 學生資料區 -->
+    <section class="students-section">
+      <h2>學生資料庫</h2>
+      
+      <div class="filter-container">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="studentSearch" placeholder="搜尋學生姓名、系級或專長...">
+        </div>
+        
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">全部</button>
+          <button class="filter-btn" data-filter="programming">程式設計</button>
+          <button class="filter-btn" data-filter="ai">AI/ML</button>
+          <button class="filter-btn" data-filter="creativity">創意發想</button>
+          <button class="filter-btn" data-filter="project">專題經驗</button>
+        </div>
+      </div>
+      
+      <div class="students-grid" id="studentsGrid">
+        <!-- 學生卡片由 JavaScript 動態生成 -->
+      </div>
+    </section>
+
+    <!-- 學生詳細資料模態框 -->
+    <div class="modal" id="studentModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle"></h3>
+          <button id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- 學生詳細資料由 JavaScript 動態生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 全屏圖片檢視容器 -->
+<div class="fullscreen-image-view" id="fullscreenView">
+    <img id="fullscreenImage" src="" alt="全屏圖片">
+</div>
+  <script src="./data.js"></script>
+  <script src="./scripts.js"></script>
+</body>
+</html>
