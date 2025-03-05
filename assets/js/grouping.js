@@ -276,29 +276,135 @@ function updateMemberCount(groupId) {
 
 // AI自動分組功能
 function autoGroup() {
-    // 這裡實現自動分組邏輯
-    // 可以基於學生的技能、專長等進行智能分組
-    if (!confirm('確定要進行自動分組嗎？這將重置當前的分組結果。')) {
+    if (!confirm('分配策略：\n1. 先確保每組有一個技術人才\n2. 將剩餘的技術人才和非技術人才合併後隨機打亂\n3. 然後將剩餘學生分配到最需要他們技能的組別\n4. 不能超過4人')) {
         return;
     }
+    
+    // 獲取所有學生卡片（包括已分組的和未分組的）
+    const allStudentCards = [
+        ...document.querySelectorAll('#studentsList .student-mini-card'),
+        ...document.querySelectorAll('.group-members .student-mini-card')
+    ];
+    
+    // 將所有學生卡片先移回左側列表
+    const studentsList = document.getElementById('studentsList');
+    allStudentCards.forEach(card => {
+        studentsList.appendChild(card);
+    });
     
     // 重置所有分組
     document.querySelectorAll('.group-members').forEach(zone => {
         zone.innerHTML = '';
     });
-    
-    // 簡單的隨機分組示例
-    const allStudents = Array.from(document.querySelectorAll('.student-mini-card'));
-    const shuffledStudents = allStudents.sort(() => Math.random() - 0.5);
-    
-    shuffledStudents.forEach((card, index) => {
-        const groupIndex = Math.floor(index / 4) + 1;
-        if (groupIndex <= 6) {
-            const groupZone = document.querySelector(`.group-members[data-group="${groupIndex}"]`);
-            groupZone.appendChild(card);
-            updateMemberCount(groupIndex);
+
+    // 將學生資料轉換為更易處理的格式
+    const studentPool = allStudentCards.map(card => {
+        const studentId = parseInt(card.dataset.studentId);
+        const student = students.find(s => s.id === studentId);
+        return {
+            card: card,
+            data: student,
+            isTechy: student.skills.programming >= 3 || student.dept.includes('電機') || student.dept.includes('資工'),
+            skills: {
+                tech: student.skills.programming >= 3 ? 1 : 0,
+                creative: student.skills.creativity >= 3 ? 1 : 0,
+                communication: student.skills.communication >= 3 ? 1 : 0
+            }
+        };
+    });
+
+    // 分離技術和非技術學生，並隨機打亂
+    const techStudents = studentPool.filter(s => s.isTechy).sort(() => Math.random() - 0.5);
+    const nonTechStudents = studentPool.filter(s => !s.isTechy).sort(() => Math.random() - 0.5);
+
+    // 計算每組的基本人數和額外人數
+    const totalStudents = studentPool.length;
+    const numGroups = 6;
+    const minSize = Math.floor(totalStudents / numGroups); // 最小人數
+    const extraStudents = totalStudents % numGroups; // 需要多分配的人數
+
+    // 創建分組
+    const groups = Array.from({ length: numGroups }, (_, i) => ({
+        index: i + 1,
+        members: [],
+        targetSize: minSize + (i < extraStudents ? 1 : 0), // 目標人數
+        skills: { tech: 0, creative: 0, communication: 0 }
+    }));
+
+    // 首先確保每組至少有一個技術人才
+    techStudents.slice(0, numGroups).forEach((student, index) => {
+        groups[index].members.push(student);
+        updateGroupSkills(groups[index], student);
+    });
+
+    // 將剩餘學生池合併並打亂
+    const remainingStudents = [
+        ...techStudents.slice(numGroups),
+        ...nonTechStudents
+    ].sort(() => Math.random() - 0.5);
+
+    // 分配剩餘學生
+    remainingStudents.forEach(student => {
+        // 找出人數未達標的組別
+        const availableGroups = groups
+            .filter(g => g.members.length < g.targetSize)
+            .sort((a, b) => {
+                // 優先填補人數較少的組
+                if (a.members.length !== b.members.length) {
+                    return a.members.length - b.members.length;
+                }
+                // 人數相同時，選擇技能最不平衡的組
+                return calculateSkillBalance(a, student) - calculateSkillBalance(b, student);
+            });
+
+        if (availableGroups.length > 0) {
+            // 選擇第一個符合條件的組別
+            const targetGroup = availableGroups[0];
+            targetGroup.members.push(student);
+            updateGroupSkills(targetGroup, student);
         }
     });
+
+    // 將分組結果應用到 DOM
+    groups.forEach(group => {
+        const groupZone = document.querySelector(`.group-members[data-group="${group.index}"]`);
+        group.members.forEach(student => {
+            groupZone.appendChild(student.card);
+        });
+        updateMemberCount(group.index);
+        updateGroupSummary(groupZone.closest('.group-area'));
+    });
+
+    // 驗證是否所有學生都被分配
+    const totalAssigned = groups.reduce((sum, group) => sum + group.members.length, 0);
+    if (totalAssigned !== totalStudents) {
+        console.error(`分組錯誤：總共 ${totalStudents} 位學生，但只分配了 ${totalAssigned} 位`);
+    }
+}
+
+// 更新組別的技能統計
+function updateGroupSkills(group, student) {
+    Object.keys(student.skills).forEach(skill => {
+        group.skills[skill] += student.skills[skill];
+    });
+}
+
+// 計算添加學生後的技能平衡度（越低越好）
+function calculateSkillBalance(group, student) {
+    const newSkills = { ...group.skills };
+    Object.keys(student.skills).forEach(skill => {
+        newSkills[skill] += student.skills[skill];
+    });
+
+    // 計算技能之間的標準差
+    const values = Object.values(newSkills);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+    
+    // 考慮組別當前人數，避免某些組過多人
+    const sizePenalty = Math.pow(group.members.length - (group.size / 2), 2);
+    
+    return Math.sqrt(variance) + sizePenalty;
 }
 
 // 修改組別區域，添加收合功能
