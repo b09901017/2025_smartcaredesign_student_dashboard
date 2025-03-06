@@ -292,7 +292,13 @@ function updateMemberCount(groupId) {
 
 // 載入預設分組
 function loadPresetGroups() {
-    if (!confirm('確定要載入預設分組嗎？這將重置當前的分組結果。')) {
+    if (!confirm('分配策略：\n' +
+        '1. G1: 闕中豪 + 吳發杰\n' +
+        '2. G2: 林均翰 + 王羽詰\n' +
+        '3. G3: 吳竣凱 + 電機三\n' +
+        '4. G4: 陳柏銓 + 電機三\n' +
+        '5. G5: 陳品睿 + 電機三\n' +
+        '6. G6: 賴柏澔 + 電機三')) {
         return;
     }
     
@@ -349,7 +355,10 @@ function loadPresetGroups() {
 
 // AI自動分組功能
 function autoGroup() {
-    if (!confirm('確定要進行自動分組嗎？這將重新分配未分組的學生。')) {
+    if (!confirm('分配策略：\n' +
+        '1. 同系的不能同組\n' +
+        '2. 不同學科類別的人在一組 (理工、社會、教育等)\n' +
+        '3. 確保每組至少3人，最多4人')) {
         return;
     }
     
