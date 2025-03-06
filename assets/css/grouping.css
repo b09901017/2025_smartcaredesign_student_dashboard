@@ -416,4 +416,36 @@
 /* 確保最後一行的組別有適當的下邊距 */
 .group-area:nth-last-child(-n+2) .group-members {
     margin-bottom: 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.preset-group-btn {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.preset-group-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.auto-group-btn {
+    flex: 1;
+    /* 保持原有樣式 */
 } 

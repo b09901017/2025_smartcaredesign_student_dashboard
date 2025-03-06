@@ -634,3 +634,21 @@ const students = [
       return { tag: "平衡發展", color: "#6b7280" };
     }
   }
+
+  // 學科分類
+  const deptCategories = {
+      science: ['電機', '物理', '資工'],  // 理工科
+      social: ['法律', '社會', '心理'],   // 社會科學
+      education: ['學習科學', '師大公領'], // 教育相關
+      other: ['地理']                     // 其他
+  };
+  
+  // 判斷學生所屬學科類別
+  function getStudentCategory(dept) {
+      for (const [category, depts] of Object.entries(deptCategories)) {
+          if (depts.some(d => dept.includes(d))) {
+              return category;
+          }
+      }
+      return 'other';
+  }

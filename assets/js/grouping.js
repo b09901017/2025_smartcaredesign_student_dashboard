@@ -1,9 +1,25 @@
+// 在文件開頭添加預設分組配置
+const presetGroups = {
+    1: [8, 6],     // 闕中豪 + 吳發杰
+    2: [21, 11],   // 林均翰 + 王羽詰
+    3: [15],       // 吳竣凱
+    4: [3],        // 陳柏銓
+    5: [19],       // 陳品睿
+    6: [17]        // 賴柏澔
+};
+
+// 電機系學生 ID 列表（除了已經在預設組別中的）
+const eeStudents = [5, 7, 14, 13];  // 劉子揚、陳彥廷、高浩宸、陳柏凱
+
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化學生列表
     initializeStudents();
     
     // 設置拖放事件監聽器
     setupDragAndDrop();
+    
+    // 設置預設分組按鈕
+    document.getElementById('loadPresetBtn').addEventListener('click', loadPresetGroups);
     
     // 設置AI自動分組按鈕
     document.getElementById('autoGroupBtn').addEventListener('click', autoGroup);
@@ -274,13 +290,13 @@ function updateMemberCount(groupId) {
     groupArea.querySelector('.member-count').textContent = `(${memberCount}/4)`;
 }
 
-// AI自動分組功能
-function autoGroup() {
-    if (!confirm('分配策略：\n1. 先確保每組有一個技術人才\n2. 將剩餘的技術人才和非技術人才合併後隨機打亂\n3. 然後將剩餘學生分配到最需要他們技能的組別\n4. 不能超過4人')) {
+// 載入預設分組
+function loadPresetGroups() {
+    if (!confirm('確定要載入預設分組嗎？這將重置當前的分組結果。')) {
         return;
     }
     
-    // 獲取所有學生卡片（包括已分組的和未分組的）
+    // 獲取所有學生卡片
     const allStudentCards = [
         ...document.querySelectorAll('#studentsList .student-mini-card'),
         ...document.querySelectorAll('.group-members .student-mini-card')
@@ -297,114 +313,251 @@ function autoGroup() {
         zone.innerHTML = '';
     });
 
-    // 將學生資料轉換為更易處理的格式
-    const studentPool = allStudentCards.map(card => {
-        const studentId = parseInt(card.dataset.studentId);
-        const student = students.find(s => s.id === studentId);
-        return {
-            card: card,
-            data: student,
-            isTechy: student.skills.programming >= 3 || student.dept.includes('電機') || student.dept.includes('資工'),
-            skills: {
-                tech: student.skills.programming >= 3 ? 1 : 0,
-                creative: student.skills.creativity >= 3 ? 1 : 0,
-                communication: student.skills.communication >= 3 ? 1 : 0
+    // 建立學生卡片的Map
+    const studentCards = new Map(allStudentCards.map(card => [
+        parseInt(card.dataset.studentId),
+        card
+    ]));
+
+    // 1. 首先按照預設名單分配
+    Object.entries(presetGroups).forEach(([groupIndex, memberIds]) => {
+        const groupZone = document.querySelector(`.group-members[data-group="${groupIndex}"]`);
+        memberIds.forEach(id => {
+            const card = studentCards.get(id);
+            if (card) {
+                groupZone.appendChild(card);
             }
-        };
-    });
-
-    // 分離技術和非技術學生，並隨機打亂
-    const techStudents = studentPool.filter(s => s.isTechy).sort(() => Math.random() - 0.5);
-    const nonTechStudents = studentPool.filter(s => !s.isTechy).sort(() => Math.random() - 0.5);
-
-    // 計算每組的基本人數和額外人數
-    const totalStudents = studentPool.length;
-    const numGroups = 6;
-    const minSize = Math.floor(totalStudents / numGroups); // 最小人數
-    const extraStudents = totalStudents % numGroups; // 需要多分配的人數
-
-    // 創建分組
-    const groups = Array.from({ length: numGroups }, (_, i) => ({
-        index: i + 1,
-        members: [],
-        targetSize: minSize + (i < extraStudents ? 1 : 0), // 目標人數
-        skills: { tech: 0, creative: 0, communication: 0 }
-    }));
-
-    // 首先確保每組至少有一個技術人才
-    techStudents.slice(0, numGroups).forEach((student, index) => {
-        groups[index].members.push(student);
-        updateGroupSkills(groups[index], student);
-    });
-
-    // 將剩餘學生池合併並打亂
-    const remainingStudents = [
-        ...techStudents.slice(numGroups),
-        ...nonTechStudents
-    ].sort(() => Math.random() - 0.5);
-
-    // 分配剩餘學生
-    remainingStudents.forEach(student => {
-        // 找出人數未達標的組別
-        const availableGroups = groups
-            .filter(g => g.members.length < g.targetSize)
-            .sort((a, b) => {
-                // 優先填補人數較少的組
-                if (a.members.length !== b.members.length) {
-                    return a.members.length - b.members.length;
-                }
-                // 人數相同時，選擇技能最不平衡的組
-                return calculateSkillBalance(a, student) - calculateSkillBalance(b, student);
-            });
-
-        if (availableGroups.length > 0) {
-            // 選擇第一個符合條件的組別
-            const targetGroup = availableGroups[0];
-            targetGroup.members.push(student);
-            updateGroupSkills(targetGroup, student);
-        }
-    });
-
-    // 將分組結果應用到 DOM
-    groups.forEach(group => {
-        const groupZone = document.querySelector(`.group-members[data-group="${group.index}"]`);
-        group.members.forEach(student => {
-            groupZone.appendChild(student.card);
         });
-        updateMemberCount(group.index);
+        updateMemberCount(groupIndex);
         updateGroupSummary(groupZone.closest('.group-area'));
     });
 
-    // 驗證是否所有學生都被分配
-    const totalAssigned = groups.reduce((sum, group) => sum + group.members.length, 0);
-    if (totalAssigned !== totalStudents) {
-        console.error(`分組錯誤：總共 ${totalStudents} 位學生，但只分配了 ${totalAssigned} 位`);
+    // 2. 分配電機系學生到指定組別
+    const targetGroups = [3, 4, 5, 6]; // 需要電機系學生的組別
+    eeStudents.forEach((studentId, index) => {
+        if (index < targetGroups.length) {
+            const card = studentCards.get(studentId);
+            if (card) {
+                const groupZone = document.querySelector(`.group-members[data-group="${targetGroups[index]}"]`);
+                groupZone.appendChild(card);
+                updateMemberCount(targetGroups[index]);
+                updateGroupSummary(groupZone.closest('.group-area'));
+            }
+        }
+    });
+}
+
+// AI自動分組功能
+function autoGroup() {
+    if (!confirm('確定要進行自動分組嗎？這將重新分配未分組的學生。')) {
+        return;
     }
-}
-
-// 更新組別的技能統計
-function updateGroupSkills(group, student) {
-    Object.keys(student.skills).forEach(skill => {
-        group.skills[skill] += student.skills[skill];
-    });
-}
-
-// 計算添加學生後的技能平衡度（越低越好）
-function calculateSkillBalance(group, student) {
-    const newSkills = { ...group.skills };
-    Object.keys(student.skills).forEach(skill => {
-        newSkills[skill] += student.skills[skill];
-    });
-
-    // 計算技能之間的標準差
-    const values = Object.values(newSkills);
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
     
-    // 考慮組別當前人數，避免某些組過多人
-    const sizePenalty = Math.pow(group.members.length - (group.size / 2), 2);
+    // 獲取已分組的學生ID和各組當前人數
+    const assignedStudentIds = new Set();
+    const currentGroupSizes = {};
+    document.querySelectorAll('.group-members').forEach(zone => {
+        const groupId = zone.dataset.group;
+        const members = zone.querySelectorAll('.student-mini-card');
+        members.forEach(card => {
+            assignedStudentIds.add(parseInt(card.dataset.studentId));
+        });
+        currentGroupSizes[groupId] = members.length;
+    });
     
-    return Math.sqrt(variance) + sizePenalty;
+    // 獲取未分組的學生卡片
+    const unassignedCards = Array.from(document.querySelectorAll('#studentsList .student-mini-card'));
+    
+    // 檢查是否有足夠的學生來確保每組至少3人
+    const totalStudents = unassignedCards.length + Object.values(currentGroupSizes).reduce((a, b) => a + b, 0);
+    const minStudentsNeeded = 6 * 3; // 6組 * 3人
+    
+    if (totalStudents < minStudentsNeeded) {
+        alert(`學生人數不足！需要至少 ${minStudentsNeeded} 人才能確保每組至少 3 人。`);
+        return;
+    }
+
+    // 將未分組學生轉換為更易處理的格式
+    const unassignedStudents = unassignedCards.map(card => {
+        const studentId = parseInt(card.dataset.studentId);
+        const student = students.find(s => s.id === studentId);
+        return {
+            id: studentId,
+            card: card,
+            data: student,
+            dept: student.dept,
+            category: getStudentCategory(student.dept)
+        };
+    });
+
+    // 按學科類別分類學生
+    const studentsByCategory = {
+        science: unassignedStudents.filter(s => s.category === 'science'),
+        social: unassignedStudents.filter(s => s.category === 'social'),
+        education: unassignedStudents.filter(s => s.category === 'education'),
+        other: unassignedStudents.filter(s => s.category === 'other')
+    };
+
+    // 獲取現有組別的信息
+    const groups = Array.from({ length: 6 }, (_, i) => ({
+        index: i + 1,
+        members: [],
+        depts: new Set(Array.from(document.querySelectorAll(`.group-members[data-group="${i + 1}"] .student-mini-card`))
+            .map(card => students.find(s => s.id === parseInt(card.dataset.studentId)).dept)),
+        categories: new Set(),
+        currentSize: currentGroupSizes[i + 1] || 0
+    }));
+
+    // 優先填滿人數不足的組別
+    while (unassignedStudents.length > 0) {
+        // 找出人數最少的組別
+        const groupsBySize = [...groups].sort((a, b) => 
+            (a.currentSize + a.members.length) - (b.currentSize + b.members.length));
+        
+        const targetGroup = groupsBySize[0];
+        const totalSize = targetGroup.currentSize + targetGroup.members.length;
+        
+        // 如果最小的組已經有3人，進入下一階段
+        if (totalSize >= 3) break;
+
+        // 尋找適合的學生
+        let bestStudent = null;
+        let bestCategory = null;
+        let minConflicts = Infinity;
+
+        Object.entries(studentsByCategory).forEach(([category, students]) => {
+            students.forEach((student, index) => {
+                if (targetGroup.depts.has(student.dept)) return;
+                
+                const conflicts = targetGroup.categories.has(student.category) ? 1 : 0;
+                if (conflicts < minConflicts) {
+                    minConflicts = conflicts;
+                    bestStudent = student;
+                    bestCategory = category;
+                }
+            });
+        });
+
+        if (bestStudent) {
+            // 分配學生到組別
+            targetGroup.members.push(bestStudent);
+            targetGroup.depts.add(bestStudent.dept);
+            targetGroup.categories.add(bestStudent.category);
+            
+            // 將學生卡片移動到對應組別
+            const groupZone = document.querySelector(`.group-members[data-group="${targetGroup.index}"]`);
+            groupZone.appendChild(bestStudent.card);
+            
+            // 更新組別信息
+            updateMemberCount(targetGroup.index);
+            updateGroupSummary(groupZone.closest('.group-area'));
+            
+            // 從未分配列表中移除
+            const studentIndex = studentsByCategory[bestCategory].indexOf(bestStudent);
+            studentsByCategory[bestCategory].splice(studentIndex, 1);
+            unassignedStudents.splice(unassignedStudents.indexOf(bestStudent), 1);
+        } else {
+            console.warn('無法找到合適的學生來填滿組別');
+            break;
+        }
+    }
+
+    // 分配剩餘學生
+    const allCategories = ['science', 'social', 'education', 'other'];
+    
+    while (unassignedStudents.length > 0) {
+        // 找出人數最少且未滿的組別
+        const availableGroups = groups.filter(g => 
+            (g.currentSize + g.members.length) < 4
+        ).sort((a, b) => 
+            (a.currentSize + a.members.length) - (b.currentSize + b.members.length)
+        );
+
+        if (availableGroups.length === 0) {
+            console.warn('所有組別都已滿，無法分配剩餘學生');
+            break;
+        }
+
+        // 隨機選擇一個類別中的學生
+        let selectedStudent = null;
+        let selectedCategory = null;
+        let selectedGroup = null;
+        let minConflicts = Infinity;
+
+        // 遍歷所有可用的組別和學生，找出最佳配對
+        availableGroups.forEach(group => {
+            allCategories.forEach(category => {
+                if (studentsByCategory[category].length === 0) return;
+
+                studentsByCategory[category].forEach(student => {
+                    // 檢查是否符合同系限制
+                    if (group.depts.has(student.dept)) return;
+
+                    // 計算衝突分數
+                    const categoryConflicts = group.categories.has(student.category) ? 1 : 0;
+                    const conflicts = categoryConflicts;
+
+                    if (conflicts < minConflicts) {
+                        minConflicts = conflicts;
+                        selectedStudent = student;
+                        selectedCategory = category;
+                        selectedGroup = group;
+                    }
+                });
+            });
+        });
+
+        if (selectedStudent && selectedGroup) {
+            // 分配學生到選定的組別
+            selectedGroup.members.push(selectedStudent);
+            selectedGroup.depts.add(selectedStudent.dept);
+            selectedGroup.categories.add(selectedStudent.category);
+            
+            // 將學生卡片移動到對應組別
+            const groupZone = document.querySelector(`.group-members[data-group="${selectedGroup.index}"]`);
+            groupZone.appendChild(selectedStudent.card);
+            
+            // 更新組別信息
+            updateMemberCount(selectedGroup.index);
+            updateGroupSummary(groupZone.closest('.group-area'));
+            
+            // 從未分配列表中移除
+            const studentIndex = studentsByCategory[selectedCategory].indexOf(selectedStudent);
+            studentsByCategory[selectedCategory].splice(studentIndex, 1);
+            unassignedStudents.splice(unassignedStudents.indexOf(selectedStudent), 1);
+        } else {
+            // 如果找不到合適的配對，可能需要放寬限制
+            console.warn('無法找到合適的配對，嘗試放寬限制');
+            
+            // 直接分配到人數最少的組
+            const leastGroup = availableGroups[0];
+            const anyStudent = unassignedStudents[0];
+            
+            if (leastGroup && anyStudent) {
+                leastGroup.members.push(anyStudent);
+                leastGroup.depts.add(anyStudent.dept);
+                leastGroup.categories.add(anyStudent.category);
+                
+                const groupZone = document.querySelector(`.group-members[data-group="${leastGroup.index}"]`);
+                groupZone.appendChild(anyStudent.card);
+                
+                updateMemberCount(leastGroup.index);
+                updateGroupSummary(groupZone.closest('.group-area'));
+                
+                const category = Object.entries(studentsByCategory)
+                    .find(([_, students]) => students.includes(anyStudent))[0];
+                studentsByCategory[category].splice(studentsByCategory[category].indexOf(anyStudent), 1);
+                unassignedStudents.splice(0, 1);
+            } else {
+                break;
+            }
+        }
+    }
+
+    // 如果還有未分配的學生，顯示警告
+    if (unassignedStudents.length > 0) {
+        alert(`警告：還有 ${unassignedStudents.length} 位學生未能分配到組別。`);
+    }
 }
 
 // 修改組別區域，添加收合功能
