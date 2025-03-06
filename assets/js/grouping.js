@@ -355,7 +355,7 @@ function loadPresetGroups() {
 
 // AI自動分組功能
 function autoGroup() {
-    if (!confirm('分配策略：\n' +
+    if (!confirm('分配策略： \n' +
         '1. 同系的不能同組\n' +
         '2. 不同學科類別的人在一組 (理工、社會、教育等)\n' +
         '3. 確保每組至少3人，最多4人')) {
