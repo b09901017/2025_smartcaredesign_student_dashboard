@@ -139,8 +139,42 @@
     font-size: 0.75rem;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
-    background: var(--primary-light);
-    color: var(--primary);
+    background: #f3f4f6;  /* 預設淺灰色背景 */
+    color: #6b7280;      /* 預設灰色文字 */
+}
+
+.student-mini-tag.tech-leader {
+    background: #fef2f2;  /* 淺紅色背景 */
+    color: #dc2626;       /* 紅色文字 */
+}
+
+.student-mini-tag.tech-helper {
+    background: #fefce8;  /* 淺黃色背景 */
+    color: #ca8a04;       /* 黃色文字 */
+}
+
+.student-mini-tag.science {
+    background: #e0f2fe;  /* 深藍色背景 */
+    color: #0369a1;       /* 深藍色文字 */
+}
+
+.student-mini-tag.arts {
+    background: #f0f9ff;  /* 淺藍色背景 */
+    color: #0ea5e9;       /* 淺藍色文字 */
+}
+
+/* 專題標籤 */
+.student-mini-tag:has(span:contains('#專題')),
+.student-mini-tag:contains('#專題') {
+    background: #f0fdf4;  /* 淺綠色背景 */
+    color: #16a34a;       /* 綠色文字 */
+}
+
+/* 創意標籤 */
+.student-mini-tag:has(span:contains('#創意')),
+.student-mini-tag:contains('#創意') {
+    background: #fdf4ff;  /* 淺紫色背景 */
+    color: #a21caf;       /* 紫色文字 */
 }
 
 /* 右側分組區域 */
@@ -272,23 +306,28 @@
 }
 
 .summary-tag.tech {
-    background: var(--primary-light);
-    color: var(--primary);
+    background: #fef2f2;  /* 淺紅色背景 */
+    color: #dc2626;       /* 紅色文字 */
 }
 
 .summary-tag.ai {
-    background: #E8F5FF;
-    color: #0184FF;
+    background: #e0f2fe;  /* 深藍色背景 */
+    color: #0369a1;       /* 深藍色文字 */
 }
 
 .summary-tag.creative {
-    background: #FFF3E0;
-    color: #FF9800;
+    background: #fdf4ff;  /* 淺紫色背景 */
+    color: #a21caf;       /* 紫色文字 */
 }
 
 .summary-tag.project {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: #f0fdf4;  /* 淺綠色背景 */
+    color: #16a34a;       /* 綠色文字 */
+}
+
+.summary-tag.helper {
+    background: #fefce8;  /* 淺黃色背景 */
+    color: #ca8a04;       /* 黃色文字 */
 }
 
 .summary-departments {
@@ -448,4 +487,28 @@
 .auto-group-btn {
     flex: 1;
     /* 保持原有樣式 */
+}
+
+.groups-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.download-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.download-btn:hover {
+    background: var(--primary-dark);
 } 

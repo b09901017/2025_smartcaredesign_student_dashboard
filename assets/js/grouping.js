@@ -1,15 +1,25 @@
-// 在文件開頭添加預設分組配置
+// 在文件開頭修改預設分組配置
 const presetGroups = {
     1: [8, 6],     // 闕中豪 + 吳發杰
     2: [21, 11],   // 林均翰 + 王羽詰
-    3: [15],       // 吳竣凱
-    4: [3],        // 陳柏銓
-    5: [19],       // 陳品睿
-    6: [17]        // 賴柏澔
+    3: [14, 15],   // 高浩宸 + 吳竣凱
+    4: [3, 7],     // 陳柏銓 + 陳彥廷
+    5: [19, 13],   // 陳品睿 + 陳柏凱
+    6: [17, 5]     // 賴柏澔 + 劉子揚
 };
 
-// 電機系學生 ID 列表（除了已經在預設組別中的）
-const eeStudents = [5, 7, 14, 13];  // 劉子揚、陳彥廷、高浩宸、陳柏凱
+// 移除不再需要的電機系學生 ID 列表
+// const eeStudents = [5, 7, 14, 13];  // 這行可以刪除，因為已經直接分配到各組了
+
+// 定義特殊標籤的學生ID列表
+const TECH_LEADERS = [8, 15, 3, 19, 17, 21];  // 技術擔當
+const TECH_HELPERS = [11, 5, 7, 14, 13, 6];   // 技術助手
+
+// 定義理組文組的系所分類
+const DEPT_CATEGORIES = {
+    science: ['電機', '物理', '資工', '數學', '農化'],  // 理工科系
+    arts: ['法律', '社會', '心理', '地理', '商研', '學習', '師大公領']  // 文法商科系
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化學生列表
@@ -63,6 +73,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 默認收起篩選區域
     filterContainer.classList.add('collapsed');
+
+    // 在 DOMContentLoaded 事件中添加
+    document.getElementById('downloadGroupsBtn').addEventListener('click', downloadGroupList);
 });
 
 // 初始化學生列表
@@ -95,7 +108,9 @@ function createStudentMiniCard(student) {
             <p class="student-mini-name">${student.name}</p>
             <p class="student-mini-dept">${student.dept}</p>
             <div class="student-mini-tags">
-                ${tags.map(tag => `<span class="student-mini-tag">${tag}</span>`).join('')}
+                ${tags.map(tag => 
+                    `<span class="student-mini-tag ${tag.class || ''}">${tag.text}</span>`
+                ).join('')}
             </div>
         </div>
     `;
@@ -110,32 +125,42 @@ function createStudentMiniCard(student) {
     return card;
 }
 
-// 獲取學生主要標籤
+// 修改獲取學生主要標籤的函數
 function getStudentMainTags(student) {
     const tags = [];
     
-    // 添加程式設計標籤
-    if (student.skills.programming >= 3) {
-        tags.push('#技術');
+    // 添加特殊標籤（帶有樣式類別）
+    if (TECH_LEADERS.includes(student.id)) {
+        tags.push({text: '#技術擔當', class: 'tech-leader'});
+    }
+    if (TECH_HELPERS.includes(student.id)) {
+        tags.push({text: '#技術助手', class: 'tech-helper'});
     }
     
-    // 添加 AI 標籤
-    if (student.skills.ai >= 3) {
-        tags.push('#AI');
-    }
-    
-    // 添加創意標籤
-    if (student.skills.creativity >= 3) {
-        tags.push('#創意');
+    // 添加理組文組標籤
+    for (const [category, depts] of Object.entries(DEPT_CATEGORIES)) {
+        if (depts.some(dept => student.dept.includes(dept))) {
+            if (category === 'science') {
+                tags.push({text: '#理工', class: 'science'});
+            } else {
+                tags.push({text: '#文法商', class: 'arts'});
+            }
+            break;
+        }
     }
     
     // 如果有專題經驗
     if (student.projectExp) {
-        tags.push('#專題');
+        tags.push({text: '#專題'});
     }
     
-    // 限制最多顯示兩個標籤
-    return tags.slice(0, 2);
+    // 添加創意標籤
+    if (student.skills.creativity >= 3) {
+        tags.push({text: '#創意'});
+    }
+    
+    // 限制最多顯示三個標籤
+    return tags.slice(0, 3);
 }
 
 // 顯示學生詳細信息
@@ -295,10 +320,10 @@ function loadPresetGroups() {
     if (!confirm('分配策略：\n' +
         '1. G1: 闕中豪 + 吳發杰\n' +
         '2. G2: 林均翰 + 王羽詰\n' +
-        '3. G3: 吳竣凱 + 電機三\n' +
-        '4. G4: 陳柏銓 + 電機三\n' +
-        '5. G5: 陳品睿 + 電機三\n' +
-        '6. G6: 賴柏澔 + 電機三')) {
+        '3. G3: 高浩宸 + 吳竣凱\n' +
+        '4. G4: 陳柏銓 + 陳彥廷\n' +
+        '5. G5: 陳品睿 + 陳柏凱\n' +
+        '6. G6: 賴柏澔 + 劉子揚')) {
         return;
     }
     
@@ -336,20 +361,6 @@ function loadPresetGroups() {
         });
         updateMemberCount(groupIndex);
         updateGroupSummary(groupZone.closest('.group-area'));
-    });
-
-    // 2. 分配電機系學生到指定組別
-    const targetGroups = [3, 4, 5, 6]; // 需要電機系學生的組別
-    eeStudents.forEach((studentId, index) => {
-        if (index < targetGroups.length) {
-            const card = studentCards.get(studentId);
-            if (card) {
-                const groupZone = document.querySelector(`.group-members[data-group="${targetGroups[index]}"]`);
-                groupZone.appendChild(card);
-                updateMemberCount(targetGroups[index]);
-                updateGroupSummary(groupZone.closest('.group-area'));
-            }
-        }
     });
 }
 
@@ -598,35 +609,40 @@ function initializeGroups() {
 
 // 更新組別摘要
 function updateGroupSummary(groupArea) {
-    const summary = groupArea.querySelector('.group-summary');
-    const members = Array.from(groupArea.querySelectorAll('.student-mini-card'));
+    const summary = groupArea.querySelector('.group-summary') || 
+        createGroupSummary(groupArea);
     
-    if (members.length === 0) {
-        summary.textContent = '尚未有成員';
-        return;
-    }
-
-    // 收集組員資訊
+    const members = groupArea.querySelectorAll('.group-members .student-mini-card');
     const stats = {
-        memberCount: members.length,
-        skills: {
-            programming: 0,  // 技術
-            ai: 0,          // AI
-            creativity: 0,  // 創意
-            project: 0      // 專題
-        },
-        departments: new Set()  // 系所統計
+        techLeaders: 0,
+        techHelpers: 0,
+        science: 0,
+        arts: 0,
+        project: 0,
+        creative: 0,
+        departments: new Set()
     };
 
     members.forEach(member => {
-        const studentId = member.dataset.studentId;
-        const student = students.find(s => s.id === parseInt(studentId));
+        const studentId = parseInt(member.dataset.studentId);
+        const student = students.find(s => s.id === studentId);
         if (student) {
-            // 統計技能
-            if (student.skills.programming >= 3) stats.skills.programming++;
-            if (student.skills.ai >= 3) stats.skills.ai++;
-            if (student.skills.creativity >= 3) stats.skills.creativity++;
-            if (student.projectExp) stats.skills.project++;
+            // 統計技術擔當和助手
+            if (TECH_LEADERS.includes(student.id)) stats.techLeaders++;
+            if (TECH_HELPERS.includes(student.id)) stats.techHelpers++;
+            
+            // 統計理工和文法商
+            for (const [category, depts] of Object.entries(DEPT_CATEGORIES)) {
+                if (depts.some(dept => student.dept.includes(dept))) {
+                    if (category === 'science') stats.science++;
+                    else stats.arts++;
+                    break;
+                }
+            }
+            
+            // 統計專題和創意
+            if (student.projectExp) stats.project++;
+            if (student.skills.creativity >= 3) stats.creative++;
             
             // 統計系所
             stats.departments.add(student.dept);
@@ -639,18 +655,28 @@ function updateGroupSummary(groupArea) {
             <div class="summary-tags">
     `;
 
-    // 添加技能標籤
-    if (stats.skills.programming > 0) {
-        summaryHTML += `<span class="summary-tag tech">#技術x${stats.skills.programming}</span>`;
+    // 添加技術擔當和助手標籤
+    if (stats.techLeaders > 0) {
+        summaryHTML += `<span class="summary-tag tech">#技術擔當x${stats.techLeaders}</span>`;
     }
-    if (stats.skills.ai > 0) {
-        summaryHTML += `<span class="summary-tag ai">#AIx${stats.skills.ai}</span>`;
+    if (stats.techHelpers > 0) {
+        summaryHTML += `<span class="summary-tag helper">#技術助手x${stats.techHelpers}</span>`;
     }
-    if (stats.skills.creativity > 0) {
-        summaryHTML += `<span class="summary-tag creative">#創意x${stats.skills.creativity}</span>`;
+    
+    // 添加理工和文法商標籤
+    if (stats.science > 0) {
+        summaryHTML += `<span class="summary-tag ai">#理工x${stats.science}</span>`;
     }
-    if (stats.skills.project > 0) {
-        summaryHTML += `<span class="summary-tag project">#專題x${stats.skills.project}</span>`;
+    if (stats.arts > 0) {
+        summaryHTML += `<span class="summary-tag ai">#文法商x${stats.arts}</span>`;
+    }
+    
+    // 添加專題和創意標籤
+    if (stats.project > 0) {
+        summaryHTML += `<span class="summary-tag project">#專題x${stats.project}</span>`;
+    }
+    if (stats.creative > 0) {
+        summaryHTML += `<span class="summary-tag creative">#創意x${stats.creative}</span>`;
     }
 
     summaryHTML += `
@@ -702,4 +728,60 @@ function filterStudents() {
         
         card.style.display = matchesSearch && matchesFilter ? 'flex' : 'none';
     });
+}
+
+// 下載分組名單功能
+function downloadGroupList() {
+    // 收集所有組別的資訊
+    const groupsInfo = [];
+    document.querySelectorAll('.group-area').forEach(groupArea => {
+        const groupNumber = groupArea.dataset.group;
+        const members = Array.from(groupArea.querySelectorAll('.student-mini-card')).map(card => {
+            const studentId = parseInt(card.dataset.studentId);
+            const student = students.find(s => s.id === studentId);
+            return student;
+        });
+
+        if (members.length > 0) {
+            groupsInfo.push({
+                group: groupNumber,
+                members: members
+            });
+        }
+    });
+
+    // 生成文本內容
+    let content = '';
+    groupsInfo.forEach(group => {
+        content += `第${group.group}組\n`;
+        group.members.forEach(member => {
+            content += `    ${member.name}（${member.dept}）\n`;
+        });
+        content += '\n';  // 添加空行
+    });
+
+    // 創建 Blob 對象
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    
+    // 創建下載連結
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `分組名單_${new Date().toLocaleDateString()}.txt`;
+    
+    // 觸發下載
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+// 如果需要支援 Big5 編碼，可以添加以下輔助函數
+function convertToBig5(str) {
+    // 這裡可以使用第三方庫來處理編碼轉換
+    // 例如：https://github.com/google/closure-library
+    return str;
 } 
